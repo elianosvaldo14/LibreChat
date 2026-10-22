@@ -1,0 +1,6 @@
+version: 1.2.1
+
+mcpServers:
+  github:
+    url: "https://gemini-mcp-github-vv46.onrender.com/mcp"
+    type: streamable-http
