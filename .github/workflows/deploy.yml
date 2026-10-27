@@ -9,6 +9,7 @@ jobs:
   web-deploy:
     name: Desplegar por FTPS
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Obtener codigo del repositorio
         uses: actions/checkout@v4
@@ -16,11 +17,13 @@ jobs:
       - name: Subir archivos por FTPS (Puerto 990)
         run: |
           sudo apt-get update && sudo apt-get install -y lftp
-          lftp -c "
+          lftp -d -c "
+          set net:timeout 15;
+          set net:max-retries 2;
           set ftp:ssl-force true;
           set ftp:ssl-protect-data true;
           set ssl:verify-certificate no;
           open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} -p 990 ftps://${{ secrets.FTP_SERVER }};
-          mirror -R --exclude-glob .git* --exclude-glob .github* ./ ./;
+          mirror -R --verbose --parallel=5 --exclude-glob .git* --exclude-glob .github* ./ ./;
           bye
           "
