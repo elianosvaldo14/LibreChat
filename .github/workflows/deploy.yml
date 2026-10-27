@@ -3,21 +3,24 @@ name: Subir archivos al Web Hosting (fps.ms)
 on:
   push:
     branches:
-      - main # Si tu rama principal se llama "master", cámbialo por master
+      - main
 
 jobs:
   web-deploy:
     name: Desplegar por FTPS
     runs-on: ubuntu-latest
     steps:
-      - name: Obtener código del repositorio
+      - name: Obtener codigo del repositorio
         uses: actions/checkout@v4
 
-      - name:Sincronizar archivos con el Web Hosting
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 990
+      - name: Subir archivos por FTPS (Puerto 990)
+        run: |
+          sudo apt-get update && sudo apt-get install -y lftp
+          lftp -c "
+          set ftp:ssl-force true;
+          set ftp:ssl-protect-data true;
+          set ssl:verify-certificate no;
+          open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} -p 990 ftps://${{ secrets.FTP_SERVER }};
+          mirror -R --exclude-glob .git* --exclude-glob .github* ./ ./;
+          bye
+          "
